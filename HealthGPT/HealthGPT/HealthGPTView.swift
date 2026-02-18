@@ -29,16 +29,40 @@ struct HealthGPTView: View {
     @State private var modelSettingRefreshId = UUID()
     @State private var messageTaskId = 0
 
+    /// Whether the chat has no user or assistant messages yet.
+    /// Controls visibility of the suggestion banner overlay.
+    private var isChatEmpty: Bool {
+        guard let llm = healthDataInterpreter.llm else { return true }
+        return !llm.context.chat.contains(where: { $0.role == .user || $0.role == .assistant })
+    }
+
     var body: some View {
         NavigationStack {
             if let llm = self.healthDataInterpreter.llm {
                 let contextBinding = Binding { llm.context.chat } set: { llm.context.chat = $0 }
-                
-                ChatView(contextBinding, exportFormat: .text)
-                    .speak(llm.context.chat, muted: !self.textToSpeech)
-                    .speechToolbarButton(muted: !self.$textToSpeech)
-                    .viewStateAlert(state: llm.state)
-                    .navigationTitle("WELCOME_TITLE")
+
+                ZStack {
+                    ChatView(contextBinding, exportFormat: .text)
+                        .speak(llm.context.chat, muted: !self.textToSpeech)
+                        .speechToolbarButton(muted: !self.$textToSpeech)
+
+                    // Suggestion banner overlay — visible only on empty chat
+                    if isChatEmpty {
+                        VStack {
+                            Spacer()
+                            SuggestionBannerView { suggestion in
+                                // Inject the tapped suggestion as a user message.
+                                // This triggers the existing onChange → queryLLM pipeline.
+                                contextBinding.wrappedValue.append(ChatEntity(role: .user, content: suggestion))
+                            }
+                            .padding(.bottom, 70) // Clear the ChatView input bar
+                        }
+                        .transition(.opacity)
+                        .animation(.easeInOut(duration: 0.3), value: isChatEmpty)
+                    }
+                }
+                .viewStateAlert(state: llm.state)
+                .navigationTitle("WELCOME_TITLE")
                     .toolbar {
                         ToolbarItem(placement: .primaryAction) {
                             self.settingsButton

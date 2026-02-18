@@ -478,6 +478,27 @@
         }
       }
     },
+    "SUGGESTION_ACCESSIBILITY_HINT" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Double tap to ask this question"
+          }
+        }
+      }
+    },
+    "SUGGESTION_PREFIX" : {
+      "comment" : "MARK: Suggestion Banner",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try asking:"
+          }
+        }
+      }
+    },
     "SPEAKER_ENABLED" : {
       "extractionState" : "manual",
       "localizations" : {
